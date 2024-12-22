@@ -13,7 +13,9 @@ from .serializer import FileSerializer
 
 
 class MainAPIView(APIView):
-    pytesseract.tesseract_cmd = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
+    tesseract_path = os.path.join(os.path.dirname(
+        __file__), 'tesseract', 'tesseract.exe')
+    pytesseract.tesseract_cmd = tesseract_path
 
     def process_img(self, file):
         file.seek(0)
