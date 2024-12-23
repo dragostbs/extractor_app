@@ -9,7 +9,9 @@ export default function Main() {
 
   useEffect(() => {
     async function fetchFiles() {
-      const response = await fetch("http://127.0.0.1:8000/");
+      const response = await fetch("http://127.0.0.1:8000/", {
+        method: "GET",
+      });
 
       if (!response.ok) {
         setError("Failed to fetch files from db");
@@ -21,6 +23,40 @@ export default function Main() {
 
     fetchFiles();
   }, []);
+
+  const handleFileUpload = async () => {
+    if (!file) {
+      setError("No file to upload");
+    }
+
+    const fileData = new FormData();
+    fileData.append("file", file);
+
+    const response = await fetch("http://127.0.0.1:8000/", {
+      method: "POST",
+      body: fileData,
+    });
+
+    if (!response.ok) {
+      setError("Failed to upload the file to db");
+    }
+
+    const newFile = await response.json();
+    setFiles([...files, newFile]);
+    setFile(null);
+  };
+
+  const handleFileDelete = async (fileId) => {
+    const response = await fetch(`http://127.0.0.1:8000/delete/${fileId}/`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      setError("Failed to delete the file from db");
+    }
+
+    setFiles(files.filter((file) => file.id !== fileId));
+  };
 
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -68,16 +104,28 @@ export default function Main() {
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">Selected file: {file.name}</p>
             <p className="text-xs text-gray-500">
-              Size: {(file.sixe / 1024 / 1024).toFixed(2)} MB
+              Size: {(file.size / 1024 / 1024).toFixed(2)} MB
             </p>
+            <button
+              onClick={handleFileUpload}
+              className="mt-1 px-2 py-1 bg-blue-400 text-white rounded mt-5"
+            >
+              Upload
+            </button>
           </div>
         )}
         <div className="mt-4">
           {files.map((file, index) => (
-            <div key={index} className="mb-2">
+            <div key={index} className="mb-2 text-center">
               <p className="text-sm text-gray-500">
-                Text from {file.file}: {file.text}
+                Text from {file.file.split("/").pop()}: {file.text}
               </p>
+              <button
+                onClick={() => handleFileDelete(file.id)}
+                className="mt-1 px-2 py-1 bg-red-400 text-white rounded mt-5"
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>
